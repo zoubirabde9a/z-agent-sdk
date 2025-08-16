@@ -9,7 +9,7 @@ PROJECT_ROOT = pathlib.Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from sdk.agent_sdk import Agent, Runner, function_tool, set_llm_provider
+from agent_sdk import Agent, Runner, function_tool, set_llm_provider
 
 
 @function_tool
