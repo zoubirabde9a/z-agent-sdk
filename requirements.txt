@@ -1,6 +1,7 @@
-openai-agents>=0.1.0
+openai
 requests>=2.31.0
 beautifulsoup4>=4.12.2
 pydantic>=2.10.0
+python-dotenv>=1.0.1
 
 

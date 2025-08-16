@@ -1,6 +1,7 @@
 import os
 import sys
 import pathlib
+from dotenv import load_dotenv
 from typing import Any
 
 # Allow running this example directly: python examples/manager_example.py
@@ -8,7 +9,7 @@ PROJECT_ROOT = pathlib.Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from sdk.agent_sdk import Agent, Runner, function_tool
+from sdk.agent_sdk import Agent, Runner, function_tool, set_llm_provider
 
 
 @function_tool
@@ -33,8 +34,23 @@ manager_agent = Agent(
 
 
 def main() -> None:
-    if not os.getenv("OPENAI_API_KEY"):
-        print("Warning: OPENAI_API_KEY is not set. The SDK call will fail without it.")
+    load_dotenv()
+    
+    if not os.getenv("API_KEY"):
+        print("Warning: API_KEY is not set. The SDK call will fail without it.")
+
+    if not os.getenv("BASE_URL"):
+        print("Warning: BASE_URL is not set. The SDK call will fail without it.")
+
+    if not os.getenv("MODEL"):
+        print("Warning: MODEL is not set. Falling back to default model.")
+
+    api_key = os.getenv("API_KEY") or ""
+    base_url = os.getenv("BASE_URL") or None
+    model = os.getenv("MODEL") or "gpt-4o-mini"
+
+    set_llm_provider(api_key, base_url)
+
     print("Manager agent ready. Type 'exit' to quit.\n")
     while True:
         user_input = input("You: ").strip()
@@ -43,7 +59,7 @@ def main() -> None:
         if user_input.lower() in {"exit", "quit"}:
             print("Goodbye!")
             break
-        reply = Runner.run(manager_agent, user_input)
+        reply = Runner.run(manager_agent, user_input, model=model)
         print(f"Manager: {reply}\n")
 
 

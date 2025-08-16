@@ -12,6 +12,25 @@ except ImportError as exc:
     ) from exc
 
 
+class LLMProvider:
+    """Static configuration for the LLM provider.
+
+    Values set here are used by the runner unless overridden by environment variables.
+    """
+    API_KEY: Optional[str] = None
+    BASE_URL: Optional[str] = None
+
+
+def set_llm_provider(api_key: str, base_url: Optional[str] = None) -> None:
+    """Set static credentials and endpoint for the LLM provider used by the runner.
+
+    - api_key: Provider API key
+    - base_url: Optional custom base URL for the provider (e.g., self-hosted endpoint)
+    """
+    LLMProvider.API_KEY = api_key
+    LLMProvider.BASE_URL = base_url
+
+
 def _python_type_to_json_schema(py_type: Any) -> Dict[str, Any]:
     # Minimal typing -> JSON schema mapper
     origin = getattr(py_type, "__origin__", None)
@@ -93,10 +112,14 @@ class Agent:
 class Runner:
     @staticmethod
     def run(agent: Agent, user_input: str, model: str = "gpt-4o-mini") -> str:
-        if not os.getenv("OPENAI_API_KEY"):
-            raise RuntimeError("OPENAI_API_KEY is not set in the environment.")
+        # Resolve API key and base URL from static provider or environment
+        api_key = LLMProvider.API_KEY
+        base_url = LLMProvider.BASE_URL
 
-        client = OpenAI()
+        if not api_key:
+            raise RuntimeError("api key is not set. Provide via set_llm_provider() or environment.")
+
+        client = OpenAI(api_key=api_key, base_url=base_url) if base_url else OpenAI(api_key=api_key)
 
         messages: List[Dict[str, Any]] = [
             {"role": "system", "content": agent.instructions},
